@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stok Bahan Ajar - Interaktif</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.7.14/dist/vue.js"></script>
+</head>
+<body>
+    <div class="container" id="stok-app">
+        <header>
+            <h1>Halaman Stok Bahan Ajar</h1>
+            <nav><a href="index.html">⬅ Kembali ke Home</a></nav>
+        </header>
+
+        <div class="filter-section">
+            <h3 style="margin-top: 0;">🔍 Filter & Sorting</h3>
+            <div class="filter-grid">
+                <div class="form-group">
+                    <label>UT-Daerah</label>
+                    <select v-model="filter.upbjj">
+                        <option value="">-- Semua Daerah --</option>
+                        <option v-for="daerah in upbjjList" :value="daerah">{{ daerah }}</option>
+                    </select>
+                </div>
+
+                <div class="form-group" v-show="filter.upbjj">
+                    <label>Kategori Mata Kuliah</label>
+                    <select v-model="filter.kategori">
+                        <option value="">-- Semua Kategori --</option>
+                        <option v-for="kat in kategoriList" :value="kat">{{ kat }}</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Urutkan Berdasarkan</label>
+                    <select v-model="filter.sortBy">
+                        <option value="judul">Judul (A-Z)</option>
+                        <option value="qty">Stok (Terkecil)</option>
+                        <option value="harga">Harga (Termurah)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div style="margin-top: 15px; display: flex; align-items: center; flex-wrap: wrap; gap: 10px;">
+                <label style="cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                    <input type="checkbox" v-model="filter.reorder" style="width: 20px; height: 20px;"> 
+                    Tampilkan Barang Perlu Re-order (Stok Kritis)
+                </label>
+                <button class="btn" @click="resetFilter">🔄 Reset Filter</button>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Kode / Judul</th>
+                        <th>Kategori</th>
+                        <th>UT-Daerah</th>
+                        <th>Rak</th>
+                        <th>Qty / Safety</th>
+                        <th>Status</th>
+                        <th>Catatan</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody is="transition-group" name="list">
+                    <tr v-for="item in filteredStok" :key="item.kode">
+                        <td>
+                            <strong>{{ item.kode }}</strong><br>
+                            <span style="font-size: 0.9em; color: #555;">{{ item.judul }}</span>
+                        </td>
+                        <td>{{ item.kategori }}</td>
+                        <td>{{ item.upbjj }}</td>
+                        <td>{{ item.lokasiRak }}</td>
+                        <td><strong>{{ item.qty }}</strong> / {{ item.safety }}</td>
+                        <td>
+                            <span v-if="item.qty >= item.safety" class="status-aman">✔ Aman</span>
+                            <span v-else-if="item.qty > 0 && item.qty < item.safety" class="status-menipis">⚠ Menipis</span>
+                            <span v-else class="status-kosong">✖ Kosong</span>
+                        </td>
+                        <td v-html="item.catatanHTML"></td>
+                        <td>
+                            <button class="btn" @click="editStok(item.kode)" style="padding: 5px 10px; font-size: 0.9em;">✏ Edit</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <div v-if="filteredStok.length === 0" style="text-align: center; padding: 20px; color: #777;">
+                Tidak ada data stok yang sesuai dengan filter Anda.
+            </div>
+        </div>
+
+        <div class="form-section" style="margin-top: 30px;">
+            <h3 style="margin-top: 0;">➕ Tambah Bahan Ajar Baru</h3>
+            <form @submit.prevent="tambahStok" class="filter-grid">
+                <input type="text" v-model="formBaru.kode" placeholder="Kode MK (Ex: EKMA1234)" required>
+                <input type="text" v-model="formBaru.judul" placeholder="Judul Buku" required>
+                <input type="number" v-model="formBaru.qty" placeholder="Jumlah Stok Aktual" required min="0">
+                <input type="number" v-model="formBaru.safety" placeholder="Safety Stok" required min="0">
+                <button type="submit" class="btn">💾 Simpan Data</button>
+            </form>
+            <p v-if="errorMsg" style="color: #dc3545; font-weight: bold; margin-top: 10px;">{{ errorMsg }}</p>
+        </div>
+    </div>
+    <script src="js/stok-app.js"></script>
+</body>
+</html>
